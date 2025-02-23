@@ -18,7 +18,7 @@ class Depredador:
     def alimentarse(self):
         pass
     
-    def __reper__(self):
+    def __repr__(self):
         return self.animal_depredador
     
 
@@ -33,50 +33,52 @@ def crear_matriz(n: int, i:int = 0, j:int = 0,  fila:list = [],matriz: list[list
     fila.append("_")
     return crear_matriz(n, i, j + 1, fila, matriz)
 
-def agregar_al_ecosistema(matriz: list, cont: int =0):
-    limite = len(matriz) - 1
-    i = random.randint(0, limite)
-    j = random.randint(0, limite)
-    if cont > len(matriz):
-        return matriz
-    
-    if matriz[i][j] == "_":
-        matriz[i][j] = "P"
-    
-    if matriz[i][j] == "P":
-        pass
-
-    return agregar_presas(matriz, cont + 1)
-
 def agregar_presas(matriz: list, cont_presas: int = 0):
     limite = len(matriz) - 1
     i = random.randint(0, limite)
     j = random.randint(0, limite)
+    posiciones_libres = buscarga_libres(matriz)
     if cont_presas == len(matriz):
         return matriz
-    if matriz[i][j] == "_":
+    
+    if (i,j) in posiciones_libres:
         matriz[i][j] = "P"
-
-    if matriz[i][j] == "P":
-        pass
-    return agregar_presas(matriz, cont_presas + 1)
+        return agregar_presas(matriz, cont_presas+1)
+    
+    return agregar_presas(matriz, cont_presas)
 
 def agregar_depredadores(matriz: list, cont_depredadores: int = 0):
     limite = len(matriz) - 1
     i = random.randint(0, limite)
     j = random.randint(0, limite)
+    posiciones_libres = buscarga_libres(matriz)
     if cont_depredadores == len(matriz):
         return matriz
-    if matriz[i][j] == "P" or "D":
-        pass
+    
+    if (i,j) in posiciones_libres:
+        matriz[i][j] = "D"
+        return agregar_depredadores(matriz, cont_depredadores+1)
+    
+    return agregar_depredadores(matriz, cont_depredadores)
+
+def buscarga_libres(matriz, i: int = 0, j: int = 0, cont: int = 0) -> list[tuple]:
+    lista = []
+    limite = len(matriz) * len(matriz)
+    if limite == cont:
+        return lista
+    
+    if j == len(matriz):
+        return buscarga_libres(matriz, i+1, 0, cont)
     
     if matriz[i][j] == "_":
-        matriz[i][j] = "D"
+        posicion = (i, j)
+        lista.append(posicion)
     
-    return agregar_depredadores(matriz, cont_depredadores+1)
+    return lista + buscarga_libres(matriz, i, j+1,cont+1)
 
-ecosistema = crear_matriz(3)
+ecosistema = crear_matriz(4)
+print(buscarga_libres(ecosistema))
 depredador = agregar_depredadores(ecosistema)
 presa = agregar_presas(ecosistema)
-
 print(ecosistema)
+print(buscarga_libres(ecosistema))
