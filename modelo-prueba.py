@@ -21,6 +21,12 @@ class Depredador:
     def __repr__(self):
         return self.animal_depredador
 
+class Planta:
+    def __init__(self):
+        self.planta: str = "P"
+    
+    def __repr__(self):
+        return self.planta
 
 def crear_matriz(n: int, i:int = 0, j:int = 0,  fila:list = [],matriz: list[list[int]] = []) -> list[list]:
     if i == n:
@@ -60,6 +66,19 @@ def agregar_depredadores(matriz: list, cont_depredadores: int = 0):
         return agregar_depredadores(matriz, cont_depredadores+1)
     
     return agregar_depredadores(matriz, cont_depredadores)
+
+def agregar_planta(matriz: list, cont_planta: int = 0):
+    limite = len(matriz) - 1
+    i = random.randint(0, limite)
+    j = random.randint(0, limite)
+    posiciones_libres = buscarga_libres(matriz)
+    if cont_planta == len(matriz):
+        return matriz
+    if (i,j) in posiciones_libres:
+        matriz[i][j] = "planta"
+        return agregar_planta(matriz, cont_planta+1)
+    
+    return agregar_planta(matriz, cont_planta)
 
 def buscarga_libres(matriz, i: int = 0, j: int = 0, cont: int = 0) -> list[tuple]:
     lista = []
@@ -154,6 +173,7 @@ def buscar_presa(matriz: list[list[str]], depredador_i: int, depredador_j: int, 
 ecosistema = crear_matriz(5)
 ecosistema = agregar_depredadores(ecosistema)
 ecosistema = agregar_presas(ecosistema)
+ecosistema = agregar_planta(ecosistema)
 print("Ecosistema inicial:")
 for fila in ecosistema:
     print(fila)
@@ -166,9 +186,5 @@ for fila in ecosistema:
 
 
 
-"""ecosistema = crear_matriz(4)
-print(buscarga_libres(ecosistema))
-depredador = agregar_depredadores(ecosistema)
-presa = agregar_presas(ecosistema)
-print(ecosistema)
-"""
+
+
