@@ -1,9 +1,9 @@
 import random
 
 class Presa:
-    def __init__(self, animal_presa):
-        self.animal_presa: str = animal_presa
-
+    def __init__(self):
+        self.animal_presa: str = "C"
+    
     def alimentarse(self):
         pass
     
@@ -11,8 +11,8 @@ class Presa:
         return self.animal_presa
 
 class Depredador:
-    def __init__(self, animal_depredador):
-        self.animal_depredador: str = animal_depredador
+    def __init__(self):
+        self.animal_depredador: str = "L"
         self.energia: int = 50
     
     def alimentarse(self):
@@ -20,7 +20,13 @@ class Depredador:
     
     def __repr__(self):
         return self.animal_depredador
+
+class Planta:
+    def __init__(self):
+        self.planta: str = "P"
     
+    def __repr__(self):
+        return self.planta
 
 def crear_matriz(n: int, i:int = 0, j:int = 0,  fila:list = [],matriz: list[list[int]] = []) -> list[list]:
     if i == n:
@@ -40,9 +46,9 @@ def agregar_presas(matriz: list, cont_presas: int = 0):
     posiciones_libres = buscarga_libres(matriz)
     if cont_presas == len(matriz):
         return matriz
-    
+
     if (i,j) in posiciones_libres:
-        matriz[i][j] = "P"
+        matriz[i][j] = Presa()
         return agregar_presas(matriz, cont_presas+1)
     
     return agregar_presas(matriz, cont_presas)
@@ -56,10 +62,23 @@ def agregar_depredadores(matriz: list, cont_depredadores: int = 0):
         return matriz
     
     if (i,j) in posiciones_libres:
-        matriz[i][j] = "D"
+        matriz[i][j] = Depredador()
         return agregar_depredadores(matriz, cont_depredadores+1)
     
     return agregar_depredadores(matriz, cont_depredadores)
+
+def agregar_planta(matriz: list, cont_planta: int = 0):
+    limite = len(matriz) - 1
+    i = random.randint(0, limite)
+    j = random.randint(0, limite)
+    posiciones_libres = buscarga_libres(matriz)
+    if cont_planta == len(matriz):
+        return matriz
+    if (i,j) in posiciones_libres:
+        matriz[i][j] = Planta()
+        return agregar_planta(matriz, cont_planta+1)
+    
+    return agregar_planta(matriz, cont_planta)
 
 def buscarga_libres(matriz, i: int = 0, j: int = 0, cont: int = 0) -> list[tuple]:
     lista = []
@@ -76,9 +95,8 @@ def buscarga_libres(matriz, i: int = 0, j: int = 0, cont: int = 0) -> list[tuple
     
     return lista + buscarga_libres(matriz, i, j+1,cont+1)
 
-ecosistema = crear_matriz(4)
-print(buscarga_libres(ecosistema))
+ecosistema = crear_matriz(5)
 depredador = agregar_depredadores(ecosistema)
 presa = agregar_presas(ecosistema)
+planta = agregar_planta(ecosistema)
 print(ecosistema)
-print(buscarga_libres(ecosistema))
