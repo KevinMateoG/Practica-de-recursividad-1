@@ -57,15 +57,7 @@ def agregar_depredadores(matriz: list, cont_depredadores: int = 0):
         matriz[i][j] = "D"
     return agregar_depredadores(matriz, cont_depredadores+1)
 
-ecosistema = crear_matriz(4)
+ecosistema = crear_matriz(7)
 presa = agregar_presas(ecosistema)
 depredador = agregar_depredadores(ecosistema)
 print(ecosistema)
-animal_1 = Presa("antilope")
-animal_2 = Presa("cirvo")
-animal_3 = Presa("cabra")
-lista = []
-lista.append(animal_1)
-lista.append(animal_2)
-lista.append (animal_3)
-print(lista)
