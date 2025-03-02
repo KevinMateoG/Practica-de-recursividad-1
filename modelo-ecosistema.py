@@ -95,24 +95,6 @@ def buscarga_libres(matriz, i: int = 0, j: int = 0, cont: int = 0) -> list[tuple
     
     return lista + buscarga_libres(matriz, i, j+1,cont+1)
 
-def mover_depredadores(matriz, i: int = 0, j: int = 0, n: int = 0):
-    limite = len(matriz) * len(matriz)
-    if limite == n:
-        return matriz
-
-    if j == len(matriz):
-        return mover_depredadores(matriz, i+1, 0, n)
-
-    if type(matriz[i][j]) == type(Depredador()):
-        posiciones = buscarga_libres(matriz)
-        l = random.randint(0, len(posiciones)-1)
-        ni, nj = posiciones[l]
-        guardar = matriz[i][j]
-        matriz[i][j] = "_"
-        matriz[ni][nj] = guardar
-        return mover_depredadores(matriz, i, j, n)
-
-    return mover_depredadores(matriz, i, j+1, n+1)
 
 def mover_depredadores(matriz, i: int = 0, j: int = 0, n: int = 0):
     limite = len(matriz) * len(matriz)
@@ -158,21 +140,24 @@ def mostrar_matriz(matriz, n=0):
     print(matriz[n])
     return mostrar_matriz(matriz, n+1)
 
-def dias(n:int, ecosistema: list, cont = 1):
-    print(f"---------dia {cont}-----------")
+def paso_de_dias(n:int, ecosistema: list, dias = 1, cont_dias = 0):
+    print(f"---------dia {dias}-----------")
     mover_depredadores(ecosistema)
     mover_presa(ecosistema)
     mostrar_matriz(ecosistema)
-
-    if n == cont:
+    #if cont_dias == 4:
+    #    reproducir_plantas()
+    #   return dias(n, ecosistema, dias+1, 0)
+    if n == dias:
         return
-    return dias(n, ecosistema, cont+1)
+    return paso_de_dias(n, ecosistema, dias+1, cont_dias+1)
 
-
+def reproducir_plantas(matriz: list, i: int = 0, j: int = 0, n: int = 0, cont_p: int = 0):
+    ...
 
 ecosistema = crear_ecosistema(4)
 ecosistema = agregar_depredadores(ecosistema)
 ecosistema = agregar_presas(ecosistema)
 ecosistema = agregar_planta(ecosistema)
 mostrar_matriz(ecosistema)
-dias(8, ecosistema)
+paso_de_dias(8, ecosistema)
