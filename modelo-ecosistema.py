@@ -58,7 +58,7 @@ def agregar_depredadores(matriz: list, cont_depredadores: int = 0):
     i = random.randint(0, limite)
     j = random.randint(0, limite)
     posiciones_libres = buscarga_libres(matriz)
-    if cont_depredadores == len(matriz):
+    if cont_depredadores >= len(matriz)//2:
         return matriz
     
     if (i,j) in posiciones_libres:
@@ -95,27 +95,38 @@ def buscarga_libres(matriz, i: int = 0, j: int = 0, cont: int = 0) -> list[tuple
     
     return lista + buscarga_libres(matriz, i, j+1,cont+1)
 
-def mover_depredadores(matriz: list, n: int = 0, i: int = 0, j: int = 0):
-    if n == len(matriz):
+def mover_depredadores(matriz, i: int = 0, j: int = 0, n: int = 0):
+    limite = len(matriz) * len(matriz)
+    if limite == n:
         return matriz
-    if type(matriz[i][j]) == type(Depredador()):
-        elemento_depredador = matriz[i][j]
-        buscar = buscarga_libres(matriz)
-        k = random.randint(0, len(matriz)-1)
-        l = random.randint(0, len(matriz)-1)
-        if (k,l) in buscar:
-            matriz[k][l] = elemento_depredador
+
     if j == len(matriz):
-        return mover_depredadores(matriz, n, i+1, 0)
-    return mover_depredadores(matriz, n+1, i, j+1)
+        return mover_depredadores(matriz, i+1, 0, n)
+
+    if type(matriz[i][j]) == type(Depredador()):
+        posiciones = buscarga_libres(matriz)
+        l = random.randint(0, len(posiciones)-1)
+        ni, nj = posiciones[l]
+        guardar = matriz[i][j]
+        matriz[i][j] = "_"
+        matriz[ni][nj] = guardar
+        return mover_depredadores(matriz, i, j, n)
+
+    return mover_depredadores(matriz, i, j+1, n+1)
+
+def mostrar_matriz(matriz, n=0):
+    if n == len(matriz):
+        return
+    print(matriz[n])
+    return mostrar_matriz(matriz, n+1)
 
 
-
-ecosistema = crear_ecosistema(3)
+ecosistema = crear_ecosistema(4)
 depredador = agregar_depredadores(ecosistema)
 presa = agregar_presas(ecosistema)
 planta = agregar_planta(ecosistema)
-movimientos = mover_depredadores(ecosistema)
-print(ecosistema)
-print(movimientos)
+mostrar_matriz(ecosistema)
+mover_depredadores(ecosistema)
+print("___________________________________________")
+mostrar_matriz(ecosistema)
 

@@ -80,7 +80,7 @@ def ejecutar_ciclo(matriz, dia=1, max_dias=None):
     if dia > max_dias:
         return
     print(f"\nDía {dia}:")
-    print(matriz)
+    mostrar_matriz(matriz)
     ejecutar_ciclo(mover_todos(matriz), dia + 1, max_dias)
 
 def agregar_presas(matriz: list, cont_presas: int = 0):
@@ -102,7 +102,7 @@ def agregar_depredadores(matriz: list, cont_depredadores: int = 0):
     i = random.randint(0, limite)
     j = random.randint(0, limite)
     posiciones_libres = buscarga_libres(matriz)
-    if cont_depredadores == len(matriz):
+    if cont_depredadores >= len(matriz)//2:
         return matriz
     
     if (i,j) in posiciones_libres:
@@ -138,6 +138,12 @@ def buscarga_libres(matriz, i: int = 0, j: int = 0, cont: int = 0) -> list[tuple
         lista.append(posicion)
     
     return lista + buscarga_libres(matriz, i, j+1,cont+1)
+
+def mostrar_matriz(matriz, n=0):
+    if n == len(matriz):
+        return
+    print(matriz[n])
+    return mostrar_matriz(matriz, n+1)
 
 # Inicialización del ecosistema
 ecosistema = crear_ecosistema(4)
