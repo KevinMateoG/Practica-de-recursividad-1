@@ -104,7 +104,7 @@ def mover_depredadores(matriz, i: int = 0, j: int = 0, n: int = 0):
     if j == len(matriz):
         return mover_depredadores(matriz, i+1, 0, n)
 
-    if type(matriz[i][j]) == type(Depredador):
+    if isinstance(matriz[i][j], Depredador):
         depredador = matriz[i][j]
         posiciones_adjacentes = [(i-1, j), (i+1, j), (i, j-1), (i, j+1)]
         mejor_presa = None
@@ -125,6 +125,7 @@ def mover_depredadores(matriz, i: int = 0, j: int = 0, n: int = 0):
                 matriz[i][j] = "_"  # El depredador muere
     
     return mover_depredadores(matriz, i, j+1, n+1)
+
 
 
 def mover_presa(matriz, i: int = 0, j: int = 0, n: int = 0):
