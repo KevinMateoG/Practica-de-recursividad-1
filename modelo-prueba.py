@@ -28,16 +28,16 @@ class Planta:
     def __repr__(self):
         return self.planta
 
-def crear_matriz(n: int, i:int = 0, j:int = 0,  fila:list = [],matriz: list[list[int]] = []) -> list[list]:
+def crear_ecosistema(n: int, i:int = 0, j:int = 0,  fila:list = [],matriz: list[list[int]] = []) -> list[list]:
     if i == n:
         return matriz
     
     if j == n:
         matriz.append(fila)
-        return crear_matriz(n, i + 1, 0, [], matriz)
+        return crear_ecosistema(n, i + 1, 0, [], matriz)
     
     fila.append("_")
-    return crear_matriz(n, i, j + 1, fila, matriz)
+    return crear_ecosistema(n, i, j + 1, fila, matriz)
 
 def agregar_presas(matriz: list, cont_presas: int = 0):
     limite = len(matriz) - 1
@@ -48,7 +48,7 @@ def agregar_presas(matriz: list, cont_presas: int = 0):
         return matriz
 
     if (i,j) in posiciones_libres:
-        matriz[i][j] = "P"
+        matriz[i][j] = Presa()
         return agregar_presas(matriz, cont_presas+1)
     
     return agregar_presas(matriz, cont_presas)
@@ -58,11 +58,11 @@ def agregar_depredadores(matriz: list, cont_depredadores: int = 0):
     i = random.randint(0, limite)
     j = random.randint(0, limite)
     posiciones_libres = buscarga_libres(matriz)
-    if cont_depredadores == len(matriz):
+    if cont_depredadores >= len(matriz)//2:
         return matriz
     
     if (i,j) in posiciones_libres:
-        matriz[i][j] = "D"
+        matriz[i][j] = Depredador()
         return agregar_depredadores(matriz, cont_depredadores+1)
     
     return agregar_depredadores(matriz, cont_depredadores)
@@ -75,7 +75,7 @@ def agregar_planta(matriz: list, cont_planta: int = 0):
     if cont_planta == len(matriz):
         return matriz
     if (i,j) in posiciones_libres:
-        matriz[i][j] = "planta"
+        matriz[i][j] = Planta()
         return agregar_planta(matriz, cont_planta+1)
     
     return agregar_planta(matriz, cont_planta)
@@ -95,96 +95,102 @@ def buscarga_libres(matriz, i: int = 0, j: int = 0, cont: int = 0) -> list[tuple
     
     return lista + buscarga_libres(matriz, i, j+1,cont+1)
 
-def mover_depredador(matriz: list[list[str]], i: int = 0, j: int = 0) -> list[list[str]]:
-    # Caso base: si hemos recorrido toda la matriz, retornar la matriz actual
-    if i == len(matriz):
+
+def mover_depredadores(matriz, i: int = 0, j: int = 0, n: int = 0):
+    limite = len(matriz) * len(matriz)
+    if limite == n:
+        return 
+
+    if j == len(matriz):
+        return mover_depredadores(matriz, i+1, 0, n)
+
+    if type(matriz[i][j]) == type(Depredador):
+        depredador = matriz[i][j]
+        posiciones_adjacentes = [(i-1, j), (i+1, j), (i, j-1), (i, j+1)]
+        mejor_presa = None
+        
+        for ni, nj in posiciones_adjacentes:
+            if 0 <= ni < len(matriz) and 0 <= nj < len(matriz) and isinstance(matriz[ni][nj], Presa):
+                mejor_presa = (ni, nj)
+                break  # Se elige la primera presa encontrada en cruz
+        
+        if mejor_presa:
+            ni, nj = mejor_presa
+            matriz[ni][nj] = depredador  # El depredador ocupa el lugar de la presa
+            matriz[i][j] = "_"  # Se libera la posición anterior
+            depredador.energia += 15
+        else:
+            depredador.energia -= 15
+            if depredador.energia <= 0:
+                matriz[i][j] = "_"  # El depredador muere
+    
+    return mover_depredadores(matriz, i, j+1, n+1)
+
+
+def mover_presa(matriz, i: int = 0, j: int = 0, n: int = 0):
+    limite = len(matriz) * len(matriz)
+    if limite == n:
+        return 
+
+    if j == len(matriz):
+        return mover_presa(matriz, i+1, 0, n)
+
+    if type(matriz[i][j]) == type(Presa()):
+        posiciones = buscarga_libres(matriz)
+        l = random.randint(0, len(posiciones)-1)
+        ni, nj = posiciones[l]
+        guardar = matriz[i][j]
+        matriz[i][j] = "_"
+        matriz[ni][nj] = guardar
+
+    return mover_presa(matriz, i, j+1, n+1)
+
+def mostrar_matriz(matriz, n=0):
+    if n == len(matriz):
+        return
+    print(matriz[n])
+    return mostrar_matriz(matriz, n+1)
+
+def paso_de_dias(n:int, ecosistema: list, dias = 1, cont_dias = 1):
+    
+    print(f"---------dia {dias}-----------")
+    mover_depredadores(ecosistema)
+    mover_presa(ecosistema)
+    mostrar_matriz(ecosistema)
+
+    if cont_dias == 4:
+        reproducir_plantas(ecosistema)
+        return paso_de_dias(n, ecosistema, dias+1, 0)
+    
+    if n == dias:
+        return
+    return paso_de_dias(n, ecosistema, dias+1, cont_dias+1)
+
+def reproducir_plantas(matriz: list, i: int = 0, j: int = 0, n: int = 0, cont_p: int = 0):
+    limite = len(matriz)*len(matriz)
+    
+    if n == limite:
         return matriz
     
-    # Caso base: si hemos recorrido toda la fila, pasar a la siguiente fila
-    if j == len(matriz[i]):
-        return mover_depredador(matriz, i + 1, 0)
+    if j == len(matriz):
+        return reproducir_plantas(matriz,i+1, 0, n, cont_p)
     
-    # Si encontramos al depredador en la posición (i, j)
-    if matriz[i][j] == "D":
-        # Buscar presas en la misma fila o columna
-        presa_pos = buscar_presa(matriz, i, j, i, j + 1)  # Buscar en la fila
-        if not presa_pos:
-            presa_pos = buscar_presa(matriz, i, j, i + 1, j)  # Buscar en la columna
-        
-        # Si hay una presa, mover al depredador hacia ella
-        if presa_pos:
-            presa_i, presa_j = presa_pos
-            # Mover en la fila
-            if presa_i == i:
-                if presa_j < j:
-                    matriz[i][j - 1] = "D"  # Mover a la izquierda
-                else:
-                    matriz[i][j + 1] = "D"  # Mover a la derecha
-            # Mover en la columna
-            elif presa_j == j:
-                if presa_i < i:
-                    matriz[i - 1][j] = "D"  # Mover hacia arriba
-                else:
-                    matriz[i + 1][j] = "D"  # Mover hacia abajo
-            # Eliminar la presa
-            matriz[presa_i][presa_j] = "_"
-            # Limpiar la posición anterior del depredador
-            matriz[i][j] = "_"
-            return matriz
-        else:
-            # Si no hay presas, mover aleatoriamente en una dirección ortogonal
-            direcciones = [(i - 1, j), (i + 1, j), (i, j - 1), (i, j + 1)]  # Arriba, abajo, izquierda, derecha
-            direcciones_validas = [(x, y) for x, y in direcciones if 0 <= x < len(matriz) and 0 <= y < len(matriz[0]) and matriz[x][y] == "_"]
-            if direcciones_validas:
-                nueva_i, nueva_j = random.choice(direcciones_validas)
-                matriz[nueva_i][nueva_j] = "D"
-                matriz[i][j] = "_"
-            return matriz
+    if type(matriz[i][j]) == type(Planta()):
+        cont_p += 1
     
-    # Continuar buscando al depredador en la siguiente posición
-    return mover_depredador(matriz, i, j + 1)
-
-
-def buscar_presa(matriz: list[list[str]], depredador_i: int, depredador_j: int, i: int, j: int) -> tuple[int, int] | None:
-    # Caso base: si estamos fuera de los límites de la matriz, no hay presa
-    if i < 0 or i >= len(matriz) or j < 0 or j >= len(matriz[0]):
-        return None
+    if cont_p >= 3:
+        nueva_planta = Planta()
+        libres = buscarga_libres(matriz)
+        l = random.randint(0, len(libres)-1)
+        ni, nj = libres[l]
+        matriz[ni][nj] = nueva_planta
+        return matriz
     
-    # Si encontramos una presa, retornar su posición
-    if matriz[i][j] == "P":
-        return (i, j)
-    
-    # Buscar en la fila (derecha o izquierda)
-    if depredador_i == i:
-        if j < depredador_j:
-            return buscar_presa(matriz, depredador_i, depredador_j, i, j - 1)  # Buscar a la izquierda
-        else:
-            return buscar_presa(matriz, depredador_i, depredador_j, i, j + 1)  # Buscar a la derecha
-    # Buscar en la columna (arriba o abajo)
-    elif depredador_j == j:
-        if i < depredador_i:
-            return buscar_presa(matriz, depredador_i, depredador_j, i - 1, j)  # Buscar hacia arriba
-        else:
-            return buscar_presa(matriz, depredador_i, depredador_j, i + 1, j)  # Buscar hacia abajo
-    return None
+    return reproducir_plantas(matriz, i, j+1, n+1, cont_p)
 
-
-# Ejemplo de uso
-ecosistema = crear_matriz(5)
+ecosistema = crear_ecosistema(4)
 ecosistema = agregar_depredadores(ecosistema)
 ecosistema = agregar_presas(ecosistema)
 ecosistema = agregar_planta(ecosistema)
-print("Ecosistema inicial:")
-for fila in ecosistema:
-    print(fila)
-
-ecosistema = mover_depredador(ecosistema)
-print("\nEcosistema después de mover al depredador:")
-for fila in ecosistema:
-    print(fila)
-
-
-
-
-
-
+mostrar_matriz(ecosistema)
+paso_de_dias(8, ecosistema)
