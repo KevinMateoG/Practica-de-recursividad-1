@@ -153,6 +153,8 @@ def mostrar_matriz(matriz, n=0):
     return mostrar_matriz(matriz, n+1)
 
 def paso_de_dias(n:int, ecosistema: list, dias = 1, cont_dias = 1):
+    if n < dias:
+        return
     
     print(f"---------dia {dias}-----------")
     mover_depredadores(ecosistema)
@@ -163,8 +165,7 @@ def paso_de_dias(n:int, ecosistema: list, dias = 1, cont_dias = 1):
         reproducir_plantas(ecosistema)
         return paso_de_dias(n, ecosistema, dias+1, 0)
     
-    if n == dias:
-        return
+
     return paso_de_dias(n, ecosistema, dias+1, cont_dias+1)
 
 def reproducir_plantas(matriz: list, i: int = 0, j: int = 0, n: int = 0, cont_p: int = 0):
@@ -194,4 +195,4 @@ ecosistema = agregar_depredadores(ecosistema)
 ecosistema = agregar_presas(ecosistema)
 ecosistema = agregar_planta(ecosistema)
 mostrar_matriz(ecosistema)
-paso_de_dias(8, ecosistema)
+paso_de_dias(9, ecosistema)
