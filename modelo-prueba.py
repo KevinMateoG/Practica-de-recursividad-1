@@ -13,7 +13,7 @@ class Presa:
 class Depredador:
     def __init__(self):
         self.animal_depredador: str = "L"
-        self.energia: int = 50
+        self.energia: int = 60
     
     def alimentarse(self):
         pass
@@ -43,7 +43,7 @@ def agregar_presas(matriz: list, cont_presas: int = 0):
     limite = len(matriz) - 1
     i = random.randint(0, limite)
     j = random.randint(0, limite)
-    posiciones_libres = buscarga_libres(matriz)
+    posiciones_libres = buscar_posiciones_libres(matriz)
     if cont_presas == len(matriz):
         return matriz
 
@@ -57,7 +57,7 @@ def agregar_depredadores(matriz: list, cont_depredadores: int = 0):
     limite = len(matriz) - 1
     i = random.randint(0, limite)
     j = random.randint(0, limite)
-    posiciones_libres = buscarga_libres(matriz)
+    posiciones_libres = buscar_posiciones_libres(matriz)
     if cont_depredadores >= len(matriz)//2:
         return matriz
     
@@ -71,7 +71,7 @@ def agregar_planta(matriz: list, cont_planta: int = 0):
     limite = len(matriz) - 1
     i = random.randint(0, limite)
     j = random.randint(0, limite)
-    posiciones_libres = buscarga_libres(matriz)
+    posiciones_libres = buscar_posiciones_libres(matriz)
     if cont_planta == len(matriz):
         return matriz
     if (i,j) in posiciones_libres:
@@ -80,53 +80,92 @@ def agregar_planta(matriz: list, cont_planta: int = 0):
     
     return agregar_planta(matriz, cont_planta)
 
-def buscarga_libres(matriz, i: int = 0, j: int = 0, cont: int = 0) -> list[tuple]:
+def buscar_posiciones_libres(matriz, i: int = 0, j: int = 0, cont: int = 0) -> list[tuple]:
     lista = []
     limite = len(matriz) * len(matriz)
+
     if limite == cont:
         return lista
     
     if j == len(matriz):
-        return buscarga_libres(matriz, i+1, 0, cont)
+        return buscar_posiciones_libres(matriz, i+1, 0, cont)
     
     if matriz[i][j] == "_":
         posicion = (i, j)
         lista.append(posicion)
     
-    return lista + buscarga_libres(matriz, i, j+1,cont+1)
+    return lista + buscar_posiciones_libres(matriz, i, j+1,cont+1)
 
 
-def mover_depredadores(matriz, i: int = 0, j: int = 0, n: int = 0):
+def mover_depredadores(matriz, i: int = 0, j: int = 0, n: int = 0, adj_index: int = 0):
     limite = len(matriz) * len(matriz)
     if limite == n:
         return 
 
     if j == len(matriz):
-        return mover_depredadores(matriz, i+1, 0, n)
+        return mover_depredadores(matriz, i+1, 0, n, 0)
+    
+    if isinstance(matriz[i][j], Depredador):
+        posiciones_adjacentes = [(i-1, j), (i+1, j), (i, j-1), (i, j+1)]
+        posiciones_libres = buscar_posiciones_libres(matriz)
+        if adj_index < len(posiciones_adjacentes):
+            ni, nj = posiciones_adjacentes[adj_index]
+            if 0 <= ni < len(matriz) and 0 <= nj < len(matriz):
+                if isinstance(matriz[ni][nj], Presa):
+                    matriz[ni][nj] = matriz[i][j]  # El depredador ocupa el lugar de la presa
+                    matriz[i][j] = "_"  # Se libera la posición anterior
+                    matriz[ni][nj].energia += 15
+                    return mover_depredadores(matriz, i, j+1, n+1, 0)
+                
+                else:
+                    l = random.randint(0, len(posiciones_libres)-1)
+                    ni, nj = posiciones_libres[l]
+                    guardar = matriz[i][j]
+                    matriz[i][j] = "_"
+                    matriz[ni][nj] = guardar
+                    return mover_depredadores(matriz, i, j+1, n+1, 0)
+            return mover_depredadores(matriz, i, j, n, adj_index+1)
+        
+        matriz[i][j].energia -= 15
+        if matriz[i][j].energia <= 0:
+            matriz[i][j] = "_"  # El depredador muere
+        return mover_depredadores(matriz, i, j+1, n+1, 0)
+    
+    return mover_depredadores(matriz, i, j+1, n+1, 0)
+
+def reproducir_depredadores(matriz, i=0, j=0, n = 0):
+    limite = len(matriz) * len(matriz)
+    if n == limite:
+        return matriz
+    
+    if j == len(matriz):
+        return reproducir_depredadores(matriz, i+1, 0, n)
 
     if isinstance(matriz[i][j], Depredador):
-        depredador = matriz[i][j]
-        posiciones_adjacentes = [(i-1, j), (i+1, j), (i, j-1), (i, j+1)]
-        mejor_presa = None
-        
-        for ni, nj in posiciones_adjacentes:
-            if 0 <= ni < len(matriz) and 0 <= nj < len(matriz) and isinstance(matriz[ni][nj], Presa):
-                mejor_presa = (ni, nj)
-                break  # Se elige la primera presa encontrada en cruz
-        
-        if mejor_presa:
-            ni, nj = mejor_presa
-            matriz[ni][nj] = depredador  # El depredador ocupa el lugar de la presa
-            matriz[i][j] = "_"  # Se libera la posición anterior
-            depredador.energia += 15
-        else:
-            depredador.energia -= 15
-            if depredador.energia <= 0:
-                matriz[i][j] = "_"  # El depredador muere
-    
-    return mover_depredadores(matriz, i, j+1, n+1)
+        elemento = matriz[i][j]
+        if elemento.energia >= 100:
+            if 0 < i and isinstance(matriz[i-1][j],Depredador):
+                libres = buscar_posiciones_libres(matriz)
+                l = random.randint(0, len(libres)-1)
+                ni, nj = libres[l]
+                matriz[ni][nj] = Depredador()
+            if 0 < j and isinstance(matriz[i][j-1],Depredador):
+                libres = buscar_posiciones_libres(matriz)
+                l = random.randint(0, len(libres)-1)
+                ni, nj = libres[l]
+                matriz[ni][nj] = Depredador()
+            if 0 > i and isinstance(matriz[i+1][j],Depredador):
+                libres = buscar_posiciones_libres(matriz)
+                l = random.randint(0, len(libres)-1)
+                ni, nj = libres[l]
+                matriz[ni][nj] = Depredador()
+            if 0 > j and isinstance(matriz[i][j+1],Depredador):
+                libres = buscar_posiciones_libres(matriz)
+                l = random.randint(0, len(libres)-1)
+                ni, nj = libres[l]
+                matriz[ni][nj] = Depredador()
 
-
+    return reproducir_depredadores(matriz, i, j+1, n+1)
 
 def mover_presa(matriz, i: int = 0, j: int = 0, n: int = 0):
     limite = len(matriz) * len(matriz)
@@ -137,7 +176,7 @@ def mover_presa(matriz, i: int = 0, j: int = 0, n: int = 0):
         return mover_presa(matriz, i+1, 0, n)
 
     if type(matriz[i][j]) == type(Presa()):
-        posiciones = buscarga_libres(matriz)
+        posiciones = buscar_posiciones_libres(matriz)
         l = random.randint(0, len(posiciones)-1)
         ni, nj = posiciones[l]
         guardar = matriz[i][j]
@@ -165,6 +204,9 @@ def paso_de_dias(n:int, ecosistema: list, dias = 1, cont_dias = 1):
         reproducir_plantas(ecosistema)
         return paso_de_dias(n, ecosistema, dias+1, 0)
     
+    if cont_dias == 3:
+        reproducir_depredadores(ecosistema)
+    
 
     return paso_de_dias(n, ecosistema, dias+1, cont_dias+1)
 
@@ -180,9 +222,9 @@ def reproducir_plantas(matriz: list, i: int = 0, j: int = 0, n: int = 0, cont_p:
     if type(matriz[i][j]) == type(Planta()):
         cont_p += 1
     
-    if cont_p >= 3:
+    if cont_p >= 2:
         nueva_planta = Planta()
-        libres = buscarga_libres(matriz)
+        libres = buscar_posiciones_libres(matriz)
         l = random.randint(0, len(libres)-1)
         ni, nj = libres[l]
         matriz[ni][nj] = nueva_planta
