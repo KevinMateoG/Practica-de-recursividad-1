@@ -183,8 +183,8 @@ def mover_presas(matriz, i: int = 0, j: int = 0, n: int = 0, adj_index: int = 0)
             ni, nj = posiciones_adjacentes[adj_index]
             if 0 <= ni < len(matriz) and 0 <= nj < len(matriz):
                 if isinstance(matriz[ni][nj], Presa):
-                    matriz[ni][nj] = matriz[i][j]
-                    matriz[i][j] = "_"
+                    matriz[ni][nj] = matriz[i][j]  # El depredador ocupa el lugar de la presa
+                    matriz[i][j] = "_"  # Se libera la posición anterior
                     matriz[ni][nj].energia += 15
                     return mover_presas(matriz, i, j+1, n+1, 0)
                 
@@ -199,7 +199,7 @@ def mover_presas(matriz, i: int = 0, j: int = 0, n: int = 0, adj_index: int = 0)
         
         matriz[i][j].energia -= 15
         if matriz[i][j].energia <= 0:
-            matriz[i][j] = "_"
+            matriz[i][j] = "_"  # El depredador muere
         return mover_presas(matriz, i, j+1, n+1, 0)
     
     return mover_presas(matriz, i, j+1, n+1, 0)
